@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" role="img" aria-label="Enilive Cafe">
+  <rect width="120" height="120" rx="18" fill="#facc15"/>
+  <path d="M32 76h45c10 0 18-8 18-18H32v18z" fill="#1a1814"/>
+  <path d="M43 48h34c0-12-8-20-17-20s-17 8-17 20z" fill="#ef4444"/>
+  <path d="M83 60h7c5 0 9 4 9 9s-4 9-9 9h-7" fill="none" stroke="#1a1814" stroke-width="7" stroke-linecap="round"/>
+</svg>

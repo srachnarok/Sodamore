@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" role="img" aria-label="Signorvino">
+  <rect width="120" height="120" rx="18" fill="#7b1f20"/>
+  <path d="M60 20c12 13 22 27 22 44 0 18-10 34-22 42-12-8-22-24-22-42 0-17 10-31 22-44z" fill="#f5f0e8"/>
+  <path d="M51 43c10 8 10 24 0 34M69 43c-10 8-10 24 0 34" fill="none" stroke="#7b1f20" stroke-width="6" stroke-linecap="round"/>
+</svg>

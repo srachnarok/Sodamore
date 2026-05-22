@@ -1,0 +1,556 @@
+
+    @font-face {
+      font-family: 'Lore';
+      src: url('./assets/LORE-Bold.ttf') format('truetype');
+      font-weight: 700;
+      font-style: normal;
+      font-display: swap;
+    }
+
+    @font-face {
+      font-family: 'PP Neue Montreal';
+      src: url('./assets/PPNeueMontreal-Regular.woff') format('woff');
+      font-weight: 400;
+      font-style: normal;
+      font-display: swap;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html {
+      height: 100%;
+      overflow: hidden;
+    }
+
+    :root {
+      --background: #ffffff;
+      --text: #111111;
+      --muted: #2a2a2a;
+      --border: rgba(0,0,0,.08);
+      --accent: #cf0505;
+      --card-bg: rgba(255, 255, 255, 0.882);
+      --shadow: 0 10px 28px rgba(0,0,0,.08);
+    }
+
+    body {
+      font-family: 'PP Neue Montreal', Arial, sans-serif;
+      background: var(--background);
+      color: var(--text);
+      height: 100vh;
+      height: 100dvh;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* ── HEADER ── */
+    header {
+      position: relative;
+      z-index: 10;
+      padding: 1.4rem 2.4rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: var(--background);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+
+    .logo-img {
+      display: block;
+      width: 200px;
+      max-width: 100%;
+      height: auto;
+    }
+
+    .logo-mark {
+      font-family: 'Lore', Georgia, serif;
+      font-size: 1.7rem;
+      font-weight: 700;
+      color: var(--text);
+      letter-spacing: -.01em;
+    }
+
+    .logo-sub {
+      font-family: 'Lore', Georgia, serif;
+      font-size: .72rem;
+      font-weight: 700;
+      color: var(--muted);
+      letter-spacing: .18em;
+      text-transform: uppercase;
+    }
+
+    .badge {
+      font-family: 'Lore', Georgia, serif;
+      font-size: .72rem;
+      font-weight: 700;
+      letter-spacing: .12em;
+      text-transform: uppercase;
+      color: var(--text);
+      border: 1px solid var(--border);
+      background: rgba(255,255,255,.95);
+      padding: .35rem .9rem;
+      border-radius: 2rem;
+    }
+
+    /* ── LAYOUT ── */
+    .app {
+      display: flex;
+      flex: 1;
+      min-height: 0;
+      overflow: hidden;
+    }
+
+    /* ── SIDEBAR ── */
+    aside {
+      width: 320px;
+      flex-shrink: 0;
+      display: flex;
+      flex-direction: column;
+      background: #f6f5f5;
+      min-height: 0;
+      overflow-y: auto;
+      overscroll-behavior: contain;
+      padding: 1.6rem 1.4rem;
+      gap: 1rem;
+      border-left: 1px solid var(--border);
+    }
+
+    .sidebar-title {
+      font-family: 'Lore', Georgia, serif;
+      font-size: 1.05rem;
+      color: var(--text);
+      font-weight: 700;
+      padding-bottom: .8rem;
+      border-bottom: 1px solid var(--border);
+      letter-spacing: .02em;
+    }
+
+    .search-wrapper {
+      display: block;
+      width: 100%;
+      margin-top: .5rem;
+      margin-bottom: .5rem;
+    }
+
+    .search-label {
+      display: block;
+      width: 100%;
+      color: var(--text);
+      font-size: .8rem;
+      font-weight: 500;
+      letter-spacing: .01em;
+    }
+
+    .search-label-text {
+      display: block;
+      margin-bottom: .35rem;
+      font-size: .82rem;
+      color: var(--muted);
+    }
+
+    .search-input {
+      width: 100%;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      background: #ffffff;
+      color: var(--text);
+      padding: .75rem .9rem;
+      font: inherit;
+      outline: none;
+      transition: border-color .2s, background .2s;
+    }
+
+    .search-input:focus {
+      border-color: var(--accent);
+      background: rgba(255,255,255,.96);
+    }
+
+    .search-input::placeholder {
+      color: rgba(0,0,0,.4);
+    }
+
+    .brand-list {
+      display: flex;
+      flex-direction: column;
+      gap: .7rem;
+    }
+
+    .brand-section {
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      background: #ffffff;
+      overflow: hidden;
+    }
+
+    .brand-toggle {
+      width: 100%;
+      border: 0;
+      background: transparent;
+      color: var(--text);
+      padding: .8rem .9rem;
+      display: grid;
+      grid-template-columns: 38px 1fr auto;
+      gap: .75rem;
+      align-items: center;
+      cursor: pointer;
+      text-align: left;
+      font: inherit;
+    }
+
+    .brand-toggle:hover,
+    .brand-section.open .brand-toggle {
+      background: rgba(207,5,5,.08);
+    }
+
+    .brand-logo {
+      width: 38px;
+      height: 38px;
+      border-radius: 8px;
+      background: #fff;
+      padding: 4px;
+      object-fit: contain;
+    }
+
+    .brand-name {
+      font-family: 'Lore', Georgia, serif;
+      font-size: .9rem;
+      font-weight: 700;
+      line-height: 1.2;
+      color: var(--accent);
+    }
+
+    .brand-count {
+      display: block;
+      margin-top: .18rem;
+      font-size: .72rem;
+      color: var(--muted);
+      font-weight: 300;
+    }
+
+    .brand-chevron {
+      color: var(--accent);
+      transition: transform .2s;
+    }
+
+    .brand-section.open .brand-chevron {
+      transform: rotate(180deg);
+    }
+
+    .store-list {
+      display: none;
+      flex-direction: column;
+      gap: .55rem;
+      padding: 0 .75rem .85rem;
+    }
+
+    .brand-section.open .store-list {
+      display: flex;
+    }
+
+    .store-card {
+      background: #ffffff;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: .8rem .9rem;
+      cursor: pointer;
+      transition: background .2s, border-color .2s, transform .15s;
+      display: flex;
+      gap: .75rem;
+      align-items: flex-start;
+    }
+
+    .store-card:hover,
+    .store-card.active {
+      background: rgba(207,5,5,.08);
+      border-color: var(--accent);
+      transform: translateX(3px);
+    }
+
+    .store-icon {
+      width: 34px;
+      height: 34px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      margin-top: 2px;
+    }
+
+    .store-icon img,
+    .map-marker-img {
+      display: block;
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+    }
+
+    .map-marker-img {
+      opacity: 0;
+      transform-origin: center bottom;
+      animation: popInMarker .55s cubic-bezier(.34, 1.56, .64, 1) forwards;
+    }
+
+    @keyframes popInMarker {
+      0% {
+        opacity: 0;
+        transform: translateY(-20px) scale(0);
+      }
+
+      65% {
+        opacity: 1;
+        transform: translateY(4px) scale(1.2);
+      }
+
+      100% {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+      }
+    }
+
+    .map-marker {
+      width: 50px;
+      height: 50px;
+      filter: drop-shadow(0 2px 3px rgba(74, 2, 2, 0.621));
+      opacity: 1;
+      transform: scale(1);
+      transform-origin: center;
+      transition: transform .18s ease, opacity .18s ease;
+    }
+
+    .store-map-icon.marker-hover .map-marker {
+      opacity: .8;
+      transform: scale(1.22);
+    }
+
+    .store-info h3 {
+      font-family: 'Lore', Georgia, serif;
+      font-size: .92rem;
+      color: var(--accent);
+      font-weight: 700;
+      margin-bottom: .25rem;
+    }
+
+    .store-info p {
+      font-size: .76rem;
+      font-weight: 300;
+      color: var(--muted);
+      line-height: 1.45;
+    }
+
+    .empty-brand {
+      padding: .25rem .2rem 0;
+      color: var(--muted);
+      font-size: .76rem;
+      line-height: 1.4;
+    }
+
+    /* ── MAP ── */
+    .map-wrapper {
+      flex: 1;
+      position: relative;
+      min-width: 0;
+      min-height: 0;
+      overflow: hidden;
+    }
+
+    .map-message {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      z-index: 700;
+      background: var(--card-bg);
+      color: var(--text);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      box-shadow: var(--shadow);
+      padding: 1rem 1.25rem;
+      width: min(360px, calc(100% - 32px));
+      text-align: center;
+      font-family: 'Lore', Georgia, serif;
+      font-size: .95rem;
+      font-weight: 700;
+      line-height: 1.35;
+      pointer-events: none;
+    }
+
+    .map-message.hidden {
+      display: none;
+    }
+
+    #map {
+      width: 100%;
+      height: 100%;
+      min-height: 0;
+    }
+
+    /* ── LEAFLET CUSTOM ── */
+    .leaflet-popup {
+      animation: popupFadeIn .3s cubic-bezier(.22, 1, .36, 1);
+    }
+
+    @keyframes popupFadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(10px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .leaflet-popup-content-wrapper {
+      background: rgba(255, 255, 255, .95);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      border: 1px solid rgba(227, 3, 2, .1);
+      border-radius: 12px;
+      box-shadow: 0 18px 45px rgba(0, 0, 0, .14), 0 4px 14px rgba(227, 3, 2, .08);
+      padding: 0;
+      overflow: hidden;
+    }
+
+    .leaflet-popup-content {
+      margin: 0;
+      line-height: 1;
+    }
+
+    .leaflet-popup-tip {
+      display: none;
+    }
+
+    .leaflet-popup-close-button {
+      color: var(--text) !important;
+      font-size: 1.2rem !important;
+      top: 8px !important;
+      right: 8px !important;
+    }
+
+    .popup-inner {
+      padding: 1.2rem 1.4rem 1.1rem;
+    }
+
+    .popup-name {
+      font-family: 'Lore', Georgia, serif;
+      font-size: 18px;
+      font-weight: 700;
+      color: #e30302;
+      margin-bottom: .3rem;
+    }
+
+    .popup-address {
+      font-family: 'PP Neue Montreal', Arial, sans-serif;
+      font-size: 13px;
+      font-weight: 300;
+      color: #555;
+      line-height: 1.5;
+    }
+
+    .popup-details {
+      display: grid;
+      gap: .55rem;
+      margin-top: .85rem;
+      padding-top: .75rem;
+      border-top: 1px solid rgba(26,24,20,.12);
+      color: #555;
+      font-size: .76rem;
+      line-height: 1.45;
+    }
+
+    .popup-detail-title {
+      display: block;
+      font-family: 'Lore', Georgia, serif;
+      font-size: .8rem;
+      font-weight: 700;
+      letter-spacing: .06em;
+      text-transform: uppercase;
+      color: var(--text);
+      margin-bottom: .16rem;
+    }
+
+    .popup-hours {
+      display: grid;
+      grid-template-columns: max-content 1fr;
+      column-gap: .5rem;
+      row-gap: .12rem;
+    }
+
+    .popup-hours span:nth-child(odd) {
+      color: var(--text);
+      font-weight: 700;
+    }
+
+    /* ── COUNTER ── */
+    .map-counter {
+      position: absolute;
+      top: 16px;
+      right: 16px;
+      z-index: 999;
+      background: rgba(255,255,255,.95);
+      color: var(--text);
+      padding: .6rem 1.1rem;
+      border-radius: 2rem;
+      font-family: 'Lore', Georgia, serif;
+      font-size: .76rem;
+      font-weight: 700;
+      letter-spacing: .08em;
+      box-shadow: var(--shadow);
+      border: 1px solid rgba(207,5,5,.2);
+      pointer-events: none;
+    }
+
+    .map-counter strong { color: var(--accent); }
+
+    .leaflet-interactive.region-shape {
+      cursor: pointer;
+    }
+
+    /* ── RESPONSIVE ── */
+    @media (max-width: 768px) {
+      header {
+        padding: .75rem 1rem;
+      }
+
+      .logo-img {
+        width: 145px;
+      }
+
+      .app { flex-direction: column; }
+
+      aside {
+        width: 100%;
+        flex: 0 0 auto;
+        max-height: 260px;
+        overflow-x: auto;
+        overflow-y: auto;
+        padding: 1rem;
+        gap: .75rem;
+      }
+
+      .sidebar-title { display: none; }
+
+      .brand-list {
+        min-width: 100%;
+      }
+
+      .store-card {
+        min-width: 0;
+        gap: .5rem;
+      }
+
+      .store-card:hover,
+      .store-card.active { transform: translateY(-3px); }
+
+      #map { min-height: 0; }
+
+      .badge { display: none; }
+
+      }

@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Punti vendita SODAMORE Italia</title>
+
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css" />
+  <link rel="stylesheet" href="./style.css" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+</head>
+<body>
+
+<header>
+  <div class="logo">
+    <img src="./assets/logo.svg" alt="Sodamore" class="logo-img" />
+    <div>
+      <span class="logo-mark"></span>
+      <span class="logo-sub">scopri dove trovarci!</span>
+    </div>
+  </div>
+  <span class="badge">Mappa Interattiva</span>
+</header>
+
+<div class="app">
+  <aside id="sidebar">
+    <p class="sidebar-title">📍Negozi</p>
+  </aside>
+
+  <div class="map-wrapper">
+    <div id="map"></div>
+    <div class="map-message" id="map-message">seleziona il distributore o la regione di interesse</div>
+    <div class="map-counter" id="counter"></div>
+  </div>
+</div>
+
+<script src="./scripts/signorvino.js"></script>
+<script src="./scripts/poke-house.js"></script>
+<script src="./scripts/all-antico-vinaio.js"></script>
+<script src="./scripts/enilive-cafe.js"></script>
+<script src="./scripts/autogrill.js"></script>
+<script src="./scripts/eataly.js"></script>
+<script src="./scripts/mappa-app.js"></script>
+<script type="text/plain" data-disabled="legacy-map">
+  /* ═══════════════════════════════════════════
+     DATI — modifica questo array a piacimento
+  ═══════════════════════════════════════════ */
+  const puntiVendita = window.puntiVendita || [];
+
+  /* ═══════════════════════════
+     MAPPA LEAFLET
+  ═══════════════════════════ */
+
+  const map = L.map('map', {
+    center: [42.5, 12.5],
+    zoom: 6,
+    zoomControl: true,
+  });
+
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+    maxZoom: 19,
+  }).addTo(map);
+
+  /* ── ICONA PERSONALIZZATA ── */
+  function createIcon(isActive = false) {
+    return L.divIcon({
+      className: 'store-map-icon',
+      html: `
+        <div class="map-marker">
+          <img class="map-marker-img" src="./assets/${isActive ? 'icon-location-2.svg' : 'icon-location.svg'}" alt="" aria-hidden="true" />
+        </div>`,
+      iconSize: [38, 38],
+      iconAnchor: [19, 19],
+      popupAnchor: [0, -22],
+    });
+  }
+
+  const defaultIcon  = createIcon(false);
+  const activeIcon   = createIcon(true);
+
+  /* ── SIDEBAR & MARKERS ── */
+  const sidebar = document.getElementById('sidebar');
+  const markers = [];
+  let activeIdx = null;
+
+  puntiVendita.forEach((p, i) => {
+    /* marker */
+    const marker = L.marker([p.lat, p.lng], { icon: defaultIcon }).addTo(map);
+
+    const popupHTML = `
+      <div class="popup-inner">
+        <!-- <p class="popup-tag">Punto Vendita</p> -->
+        <p class="popup-name">${p.nome}</p>
+        <p class="popup-address">${p.indirizzo}</p>
+      </div>`;
+
+    marker.bindPopup(popupHTML, { maxWidth: 260 });
+
+    marker.on('click', () => setActive(i));
+    marker.on('popupclose', () => {
+      if (activeIdx === i) clearActive();
+    });
+
+    markers.push(marker);
+
+    /* sidebar card */
+    const card = document.createElement('div');
+    card.className = 'store-card';
+    card.innerHTML = `
+      <div class="store-icon">
+        <img src="./assets/icon-location.svg" alt="" aria-hidden="true" data-default-src="./assets/icon-location.svg" data-active-src="./assets/icon-location-2.svg" />
+      </div>
+      <div class="store-info">
+        <h3>${p.nome}</h3>
+        <p>${p.indirizzo}</p>
+      </div>`;
+    card.addEventListener('click', () => {
+      setActive(i);
+      map.flyTo([p.lat, p.lng], 13, { duration: 1 });
+    });
+    card.dataset.idx = i;
+    sidebar.appendChild(card);
+  });
+
+  /* ── COUNTER ── */
+  document.getElementById('counter').innerHTML =
+    `<strong>${puntiVendita.length}</strong> negozi in Italia`;
+
+  /* ── HELPERS ── */
+  function setActive(idx) {
+    clearActive();
+    activeIdx = idx;
+    markers[idx].setIcon(activeIcon);
+    markers[idx].openPopup();
+    const activeCard = document.querySelector(`.store-card[data-idx="${idx}"]`);
+    const activeCardIcon = activeCard.querySelector('.store-icon img');
+    activeCard.classList.add('active');
+    activeCardIcon.src = activeCardIcon.dataset.activeSrc;
+  }
+
+  function clearActive() {
+    if (activeIdx !== null) {
+      markers[activeIdx].setIcon(defaultIcon);
+      const activeCard = document.querySelector(`.store-card[data-idx="${activeIdx}"]`);
+      const activeCardIcon = activeCard.querySelector('.store-icon img');
+      activeCard.classList.remove('active');
+      activeCardIcon.src = activeCardIcon.dataset.defaultSrc;
+      activeIdx = null;
+    }
+  }
+
+</script>
+</body>
+</html>

@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" role="img" aria-label="Poke House">
+  <rect width="120" height="120" rx="18" fill="#0f766e"/>
+  <circle cx="60" cy="60" r="36" fill="#f5f0e8"/>
+  <path d="M31 58h58c-3 22-16 34-29 34S34 80 31 58z" fill="#ef4444"/>
+  <circle cx="47" cy="47" r="7" fill="#0f766e"/>
+  <circle cx="66" cy="42" r="6" fill="#f59e0b"/>
+  <circle cx="75" cy="58" r="5" fill="#84cc16"/>
+</svg>
