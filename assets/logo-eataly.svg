@@ -1,5 +1,1 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" role="img" aria-label="Eataly">
-  <rect width="120" height="120" rx="18" fill="#166534"/>
-  <circle cx="60" cy="60" r="38" fill="#f5f0e8"/>
-  <path d="M41 78V42h39v11H55v7h21v10H55v8h25v11H41z" fill="#166534"/>
-</svg>
+<?xml version="1.0" encoding="UTF-8"?><svg id="Livello_3" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><style>.cls-1{fill:#6a3834;}</style></defs><path class="cls-1" d="M0,0v100h100V0H0ZM77.66,84.93H21.56v-2.39c9.35,0,10.71-1.98,10.71-13.51V30.87c0-11.53-1.36-13.52-10.71-13.52v-2.38h52.19l.98,15.49h-2.33l-.59-2.38c-1.76-6.16-2.73-8.75-13.25-8.75h-17.14v26.43h5.84c11.49,0,13.24-1.39,13.24-11.33h2.53v26.83h-2.53c0-9.74-1.75-11.13-13.24-11.13h-5.84v17.1c0,11.53,1.56,13.52,11.1,13.52h9.93c10.52,0,11.69-2.78,13.05-8.94l.58-2.39h2.34l-.78,15.51Z"/></svg>

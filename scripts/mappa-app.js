@@ -7,6 +7,7 @@ const catene = [
   { nome: "Enilive Caf\u00e9", logo: "./assets/logo-enilive-cafe.svg" },
   { nome: "Autogrill", logo: "./assets/logo-autogrill.svg" },
   { nome: "Eataly", logo: "./assets/logo-eataly.svg" },
+  { nome: "Foorban", logo: "./assets/logo-foorban.svg" },
 ];
 
 const REGIONI_GEOJSON_URL = 'https://raw.githubusercontent.com/openpolis/geojson-italy/master/geojson/limits_IT_regions.geojson';
@@ -34,8 +35,18 @@ const regioni = [
   { nome: "Sardegna", bounds: [[38.82, 8.05], [41.32, 9.85]] },
 ];
 
+const prodotti = [
+  { nome: "Original Love", immagine: "./assets/prodotti/OriginalLove.png" },
+  { nome: "Summer Crush", immagine: "./assets/prodotti/SummerCrush.png" },
+  { nome: "Cola Spark", immagine: "./assets/prodotti/ColaSpark.png" },
+  { nome: "Beerlover Rossa", immagine: "./assets/prodotti/BeerloverRossa.png" },
+  { nome: "Beerlover Bionda", immagine: "./assets/prodotti/BeerloverBionda.png" },
+  { nome: "Whitelover", immagine: "./assets/prodotti/Whitelover.png" },
+];
+
 puntiVendita.forEach((punto) => {
   punto.regione = punto.regione || trovaRegione(punto);
+  punto.prodotti = punto.prodotti || trovaProdotti(punto);
 });
 
 const map = L.map('map', {
@@ -45,7 +56,6 @@ const map = L.map('map', {
 });
 
 L.tileLayer('https://api.thunderforest.com/transport/{z}/{x}/{y}{r}.png?apikey={apikey}', {
-    attribution: '&copy; <a href="http://www.thunderforest.com/">Thunderforest</a>, &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
     apikey: '47bccb9c7c7544298ab56077e11068f0', 
     maxZoom: 22
   }).addTo(map);
@@ -75,153 +85,104 @@ const hoverMarkerSrc = './assets/icon-location-active.svg';
 const sidebar = document.getElementById('sidebar');
 const counter = document.getElementById('counter');
 const mapMessage = document.getElementById('map-message');
+const defaultMapMessage = mapMessage.textContent;
+
 const searchWrapper = document.createElement('div');
 searchWrapper.className = 'search-wrapper';
 searchWrapper.innerHTML = `
   <label class="search-label">
-    <span class="search-label-text">Cerca negozio</span>
-    <input class="search-input" type="search" placeholder="Inserisci il nome dello store" aria-label="Cerca negozio" />
+    <span class="search-label-text">Cerca store</span>
+    <input class="search-input" type="search" placeholder="Nome dello store" aria-label="Cerca store per nome" />
   </label>
 `;
 sidebar.appendChild(searchWrapper);
 
 const searchInput = searchWrapper.querySelector('.search-input');
-searchInput.addEventListener('input', () => applySearchFilter(searchInput.value));
-
-const brandList = document.createElement('div');
+const filterList = document.createElement('div');
 const markers = [];
 let activeIdx = null;
 let selectedRegionLayer = null;
 
-brandList.className = 'brand-list';
-sidebar.appendChild(brandList);
+searchInput.addEventListener('input', () => showBySearch(searchInput.value));
 
-catene.forEach((catena) => {
-  const puntiCatena = puntiVendita.filter((p) => p.catena === catena.nome);
-  const section = document.createElement('section');
-  section.className = 'brand-section';
-  section.dataset.catena = catena.nome;
-  section.innerHTML = `
-    <button class="brand-toggle" type="button" aria-expanded="false">
-      <img class="brand-logo" src="${catena.logo}" alt="${catena.nome}" />
-      <span>
-        <span class="brand-name">${catena.nome}</span>
-        <span class="brand-count">${puntiCatena.length} punti vendita</span>
-      </span>
-      <span class="brand-chevron" aria-hidden="true">&#8964;</span>
-    </button>
-    <div class="store-list"></div>`;
-
-  const list = section.querySelector('.store-list');
-
-  if (puntiCatena.length === 0) {
-    list.innerHTML = '<p class="empty-brand">Nessun punto vendita inserito.</p>';
-  } else {
-    puntiCatena.forEach((punto) => {
-      list.appendChild(createStoreCard(punto, puntiVendita.indexOf(punto)));
-    });
-  }
-
-  section.querySelector('.brand-toggle').addEventListener('click', () => {
-    const isOpen = section.classList.toggle('open');
-    section.querySelector('.brand-toggle').setAttribute('aria-expanded', String(isOpen));
-
-    if (isOpen) {
-      closeOtherBrands(section);
-      selectedRegionLayer = clearSelectedRegion(selectedRegionLayer);
-      showByCatena(catena.nome);
-    } else {
-      resetMapSelection();
-    }
-  });
-
-  brandList.appendChild(section);
-});
+filterList.className = 'filter-list';
+sidebar.appendChild(filterList);
+createFilterSections();
 
 loadRegionShapes();
 updateCounter(0, 'Selezione richiesta');
 
-function createStoreCard(p, idx) {
-  const card = document.createElement('button');
-  card.type = 'button';
-  card.className = 'store-card';
-  card.dataset.idx = idx;
-  card.innerHTML = `
-    <div class="store-icon">
-      <img src="./assets/icon-location.svg" alt="" aria-hidden="true" data-default-src="./assets/icon-location.svg" data-active-src="./assets/icon-location-active.svg" />
-    </div>
-    <div class="store-info">
-      <h3>${escapeHtml(p.nome)}</h3>
-      <p>${escapeHtml(p.indirizzo)}</p>
-    </div>`;
-  card.addEventListener('click', () => {
-    const markerIdx = markers.findIndex((item) => item.storeIdx === idx);
-    if (markerIdx >= 0) {
-      map.once('moveend', () => setActive(markerIdx));
-      map.flyTo([p.lat, p.lng], 13, { duration: 1 });
-    }
+function createFilterSections() {
+  const distributorSection = createFilterSection('Distributore', `${catene.length} distributori`, 'distributor-list');
+  const distributorList = distributorSection.querySelector('.filter-panel');
+
+  catene.forEach((catena) => {
+    const puntiCatena = puntiVendita.filter((p) => isSameCatena(p.catena, catena.nome));
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.className = 'distributor-option';
+    button.dataset.catena = catena.nome;
+    button.innerHTML = `
+      <img class="brand-logo" src="${catena.logo}" alt="${catena.nome}" />
+      <span>
+        <span class="brand-name">${escapeHtml(catena.nome)}</span>
+        <span class="brand-count">${puntiCatena.length} punti vendita</span>
+      </span>`;
+    button.addEventListener('click', () => {
+      document.querySelectorAll('.distributor-option.active').forEach((item) => item.classList.remove('active'));
+      button.classList.add('active');
+      clearActiveProducts();
+      clearSearch();
+      selectedRegionLayer = clearSelectedRegion(selectedRegionLayer);
+      showByCatena(catena.nome);
+    });
+    distributorList.appendChild(button);
   });
-  card.addEventListener('mouseenter', () => setMarkerHoverByStoreIdx(idx, true));
-  card.addEventListener('mouseleave', () => setMarkerHoverByStoreIdx(idx, false));
-  return card;
+
+  const productSection = createFilterSection('Prodotti', `${prodotti.length} prodotti`, 'product-list');
+  const productList = productSection.querySelector('.filter-panel');
+
+  prodotti.forEach((prodotto) => {
+    const item = document.createElement('button');
+    item.type = 'button';
+    item.className = 'product-option';
+    item.innerHTML = `
+      <img class="product-image" src="${prodotto.immagine}" alt="${escapeHtml(prodotto.nome)}" />
+      <span class="product-name">${escapeHtml(prodotto.nome)}</span>`;
+    item.addEventListener('click', () => {
+      document.querySelectorAll('.product-option.active').forEach((option) => option.classList.remove('active'));
+      item.classList.add('active');
+      clearActiveDistributors();
+      clearSearch();
+      selectedRegionLayer = clearSelectedRegion(selectedRegionLayer);
+      showByProdotto(prodotto.nome);
+    });
+    productList.appendChild(item);
+  });
+
+  filterList.append(distributorSection, productSection);
 }
 
-function applySearchFilter(query) {
-  const searchTerm = String(query || '').trim().toLowerCase();
+function createFilterSection(title, subtitle, panelClassName) {
+  const section = document.createElement('section');
+  section.className = 'filter-section';
+  section.innerHTML = `
+    <button class="filter-toggle" type="button" aria-expanded="false">
+      <span>
+        <span class="filter-title">${escapeHtml(title)}</span>
+        <span class="filter-subtitle">${escapeHtml(subtitle)}</span>
+      </span>
+      <span class="brand-chevron" aria-hidden="true">&#8964;</span>
+    </button>
+    <div class="filter-panel ${panelClassName}"></div>`;
 
-  if (!searchTerm) {
-    document.querySelectorAll('.brand-section').forEach((section) => {
-      section.style.display = '';
-      section.classList.remove('open');
-      section.querySelector('.brand-toggle').setAttribute('aria-expanded', 'false');
-      section.querySelectorAll('.store-card').forEach((card) => {
-        card.style.display = '';
-      });
-    });
-
-    resetMapSelection();
-    return;
-  }
-
-  closeOtherBrands();
-  const visibleCards = [];
-
-  document.querySelectorAll('.brand-section').forEach((section) => {
-    let sectionMatches = 0;
-
-    section.querySelectorAll('.store-card').forEach((card) => {
-      const title = card.querySelector('.store-info h3')?.textContent?.toLowerCase() || '';
-      const isMatch = title.includes(searchTerm);
-      card.style.display = isMatch ? '' : 'none';
-
-      if (isMatch) {
-        sectionMatches += 1;
-        visibleCards.push(card);
-      }
-    });
-
-    if (sectionMatches > 0) {
-      section.style.display = '';
-      section.classList.add('open');
-      section.querySelector('.brand-toggle').setAttribute('aria-expanded', 'true');
-    } else {
-      section.style.display = 'none';
-      section.classList.remove('open');
-      section.querySelector('.brand-toggle').setAttribute('aria-expanded', 'false');
-    }
+  section.querySelector('.filter-toggle').addEventListener('click', () => {
+    const isOpen = section.classList.toggle('open');
+    section.querySelector('.filter-toggle').setAttribute('aria-expanded', String(isOpen));
+    if (isOpen) closeOtherBrands(section);
   });
 
-  const resultCount = visibleCards.length;
-  updateCounter(resultCount, resultCount === 1 ? 'risultato ricerca' : 'risultati ricerca');
-
-  if (resultCount > 0) {
-    mapMessage.classList.add('hidden');
-    renderMarkers(visibleCards.map((card) => ({ punto: puntiVendita[Number(card.dataset.idx)], idx: Number(card.dataset.idx) })));
-  } else {
-    renderMarkers([]);
-    mapMessage.textContent = 'Nessun negozio trovato';
-    mapMessage.classList.remove('hidden');
-  }
+  return section;
 }
 
 function loadRegionShapes() {
@@ -237,7 +198,7 @@ function loadRegionShapes() {
           color: '#cf0505',
           weight: 1.2,
           opacity: 0,
-          fillColor: '#cf0505',
+          fillColor: '#e41c1c61',
           fillOpacity: 0,
         },
         onEachFeature: (feature, layer) => {
@@ -257,10 +218,13 @@ function loadRegionShapes() {
 
           layer.on('click', () => {
             closeOtherBrands();
+            clearActiveDistributors();
+            clearActiveProducts();
+            clearSearch();
             selectedRegionLayer = clearSelectedRegion(selectedRegionLayer);
             selectedRegionLayer = layer;
             layer.setStyle({ opacity: .95, fillOpacity: .22 });
-            showByRegione(nomeRegione);
+            showByRegione(nomeRegione, feature);
           });
         },
       }).addTo(map);
@@ -281,6 +245,7 @@ function renderMarkers(punti) {
       <div class="popup-inner">
         <p class="popup-name">${escapeHtml(punto.nome)}</p>
         <p class="popup-address">${escapeHtml(punto.indirizzo)}</p>
+        ${createPopupProducts(punto)}
         ${createPopupDetails(punto)}
       </div>`;
 
@@ -288,7 +253,6 @@ function renderMarkers(punti) {
     marker.on('click', () => {
       const markerIdx = markers.findIndex((item) => item.marker === marker);
       setActive(markerIdx);
-      scrollSidebarCardIntoView(markerIdx);
     });
     marker.on('mouseover', () => setMarkerHover(markers.findIndex((item) => item.marker === marker), true));
     marker.on('mouseout', () => setMarkerHover(markers.findIndex((item) => item.marker === marker), false));
@@ -309,24 +273,85 @@ function renderMarkers(punti) {
 function showByCatena(nomeCatena) {
   const punti = puntiVendita
     .map((punto, idx) => ({ punto, idx }))
-    .filter(({ punto }) => punto.catena === nomeCatena);
-  mapMessage.classList.toggle('hidden', punti.length > 0);
+    .filter(({ punto }) => isSameCatena(punto.catena, nomeCatena));
+
+  if (punti.length > 0) {
+    mapMessage.classList.add('hidden');
+  } else {
+    mapMessage.textContent = `Nessun punto vendita per ${nomeCatena}`;
+    mapMessage.classList.remove('hidden');
+  }
+
   renderMarkers(punti);
   updateCounter(punti.length, nomeCatena);
 }
 
-function showByRegione(nomeRegione) {
+function showByRegione(nomeRegione, feature = null) {
   const punti = puntiVendita
     .map((punto, idx) => ({ punto, idx }))
-    .filter(({ punto }) => punto.regione === nomeRegione);
-  mapMessage.classList.toggle('hidden', punti.length > 0);
+    .filter(({ punto }) => feature ? isPointInFeature(punto, feature) : punto.regione === nomeRegione);
+
+  if (punti.length > 0) {
+    mapMessage.classList.add('hidden');
+  } else {
+    mapMessage.textContent = `Nessun punto vendita in ${nomeRegione}`;
+    mapMessage.classList.remove('hidden');
+  }
+
   renderMarkers(punti);
   updateCounter(punti.length, nomeRegione);
 }
 
+function showByProdotto(nomeProdotto) {
+  const punti = puntiVendita
+    .map((punto, idx) => ({ punto, idx }))
+    .filter(({ punto }) => Array.isArray(punto.prodotti) && punto.prodotti.includes(nomeProdotto));
+
+  if (punti.length > 0) {
+    mapMessage.classList.add('hidden');
+  } else {
+    mapMessage.textContent = `Nessun punto vendita per ${nomeProdotto}`;
+    mapMessage.classList.remove('hidden');
+  }
+
+  renderMarkers(punti);
+  updateCounter(punti.length, nomeProdotto);
+}
+
+function showBySearch(query) {
+  const searchTerm = normalizzaTesto(query);
+
+  if (!searchTerm) {
+    resetMapSelection();
+    return;
+  }
+
+  closeOtherBrands();
+  clearActiveDistributors();
+  clearActiveProducts();
+  selectedRegionLayer = clearSelectedRegion(selectedRegionLayer);
+
+  const punti = puntiVendita
+    .map((punto, idx) => ({ punto, idx }))
+    .filter(({ punto }) => normalizzaTesto(punto.nome).includes(searchTerm));
+
+  if (punti.length > 0) {
+    mapMessage.classList.add('hidden');
+  } else {
+    mapMessage.textContent = 'Nessuno store trovato';
+    mapMessage.classList.remove('hidden');
+  }
+
+  renderMarkers(punti);
+  updateCounter(punti.length, punti.length === 1 ? 'risultato ricerca' : 'risultati ricerca');
+}
+
 function resetMapSelection() {
   selectedRegionLayer = clearSelectedRegion(selectedRegionLayer);
+  clearActiveDistributors();
+  clearActiveProducts();
   renderMarkers([]);
+  mapMessage.textContent = defaultMapMessage;
   mapMessage.classList.remove('hidden');
   updateCounter(0, 'Selezione richiesta');
 }
@@ -337,12 +362,6 @@ function setActive(idx) {
   activeIdx = idx;
   markers[idx].marker.setIcon(createIcon(true, idx));
   markers[idx].marker.openPopup();
-  const activeCard = document.querySelector(`.store-card[data-idx="${markers[idx].storeIdx}"]`);
-  if (activeCard) {
-    const activeCardIcon = activeCard.querySelector('.store-icon img');
-    activeCard.classList.add('active');
-    activeCardIcon.src = activeCardIcon.dataset.activeSrc;
-  }
 }
 
 function centerPopupInMap() {
@@ -367,37 +386,11 @@ function centerPopupInMap() {
   window.setTimeout(recenter, 320);
 }
 
-function scrollSidebarCardIntoView(markerIdx) {
-  if (markerIdx < 0 || !markers[markerIdx]) return;
-
-  const activeCard = document.querySelector(`.store-card[data-idx="${markers[markerIdx].storeIdx}"]`);
-  if (!activeCard) return;
-
-  const sidebarRect = sidebar.getBoundingClientRect();
-  const cardRect = activeCard.getBoundingClientRect();
-  const cardOffset = cardRect.top - sidebarRect.top + sidebar.scrollTop;
-  const centeredOffset = cardOffset - (sidebar.clientHeight / 2) + (activeCard.offsetHeight / 2);
-  const maxScrollTop = sidebar.scrollHeight - sidebar.clientHeight;
-
-  sidebar.scrollTo({ top: Math.max(0, Math.min(centeredOffset, maxScrollTop)), behavior: 'smooth' });
-}
-
 function clearActive() {
   if (activeIdx !== null && markers[activeIdx]) {
     markers[activeIdx].marker.setIcon(createIcon(false, activeIdx));
-    const activeCard = document.querySelector(`.store-card[data-idx="${markers[activeIdx].storeIdx}"]`);
-    if (activeCard) {
-      const activeCardIcon = activeCard.querySelector('.store-icon img');
-      activeCard.classList.remove('active');
-      activeCardIcon.src = activeCardIcon.dataset.defaultSrc;
-    }
   }
   activeIdx = null;
-}
-
-function setMarkerHoverByStoreIdx(storeIdx, isHovered) {
-  const markerIdx = markers.findIndex((item) => item.storeIdx === storeIdx);
-  setMarkerHover(markerIdx, isHovered);
 }
 
 function setMarkerHover(markerIdx, isHovered) {
@@ -421,12 +414,24 @@ function setMarkerHover(markerIdx, isHovered) {
 }
 
 function closeOtherBrands(activeSection = null) {
-  document.querySelectorAll('.brand-section').forEach((section) => {
+  document.querySelectorAll('.filter-section').forEach((section) => {
     if (section !== activeSection) {
       section.classList.remove('open');
-      section.querySelector('.brand-toggle').setAttribute('aria-expanded', 'false');
+      section.querySelector('.filter-toggle').setAttribute('aria-expanded', 'false');
     }
   });
+}
+
+function clearActiveDistributors() {
+  document.querySelectorAll('.distributor-option.active').forEach((item) => item.classList.remove('active'));
+}
+
+function clearActiveProducts() {
+  document.querySelectorAll('.product-option.active').forEach((item) => item.classList.remove('active'));
+}
+
+function clearSearch() {
+  searchInput.value = '';
 }
 
 function clearSelectedRegion(layer) {
@@ -458,6 +463,20 @@ function createPopupDetails(punto) {
   }
 
   return details.length ? `<div class="popup-details">${details.join('')}</div>` : "";
+}
+
+function createPopupProducts(punto) {
+  const prodottiPunto = getProdottiPunto(punto);
+  if (prodottiPunto.length === 0) return "";
+
+  return `
+    <div class="popup-products">
+      ${prodottiPunto.map((prodotto) => `
+        <span class="popup-product">
+          <img src="${prodotto.immagine}" alt="${escapeHtml(prodotto.nome)}" />
+          <span>${escapeHtml(prodotto.nome)}</span>
+        </span>`).join('')}
+    </div>`;
 }
 
 function formatOrari(orari) {
@@ -493,6 +512,62 @@ function trovaRegione(punto) {
   });
 
   return regione ? regione.nome : "";
+}
+
+function trovaProdotti(punto) {
+  const catena = normalizzaTesto(punto.catena);
+  const nome = normalizzaTesto(punto.nome);
+
+  if (catena === normalizzaTesto("Poké House") || catena === normalizzaTesto("Poké House")) {
+    return ["Original Love"];
+  }
+  
+   if (catena === normalizzaTesto("Eataly") || catena === normalizzaTesto("Eataly")) {
+    return ["Original Love"];
+  }
+
+  if (catena === normalizzaTesto("All'Antico Vinaio") || catena === normalizzaTesto("All'Antico Vinaio")) {
+    return ["Original Love"];
+  }
+
+  if (catena === normalizzaTesto("Signorvino")) {
+    return ["Beerlover Bionda", "Whitelover"];
+  }
+
+  if (catena === normalizzaTesto("Autogrill") && nome.includes("amore")) {
+    return ["Original Love", "Summer Crush"];
+  }
+
+  if (catena.includes("enilive")) {
+    return ["Original Love", "Summer Crush", "Cola Spark", "Beerlover Bionda", "Beerlover Rossa"];
+  }
+
+  return [];
+}
+
+function getProdottiPunto(punto) {
+  if (!Array.isArray(punto.prodotti)) return [];
+
+  return punto.prodotti
+    .map((nomeProdotto) => prodotti.find((prodotto) => prodotto.nome === nomeProdotto))
+    .filter(Boolean);
+}
+
+function normalizzaTesto(value) {
+  return String(value || '')
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
+    .trim();
+}
+
+function isSameCatena(value, expected) {
+  const current = normalizzaTesto(value);
+  const target = normalizzaTesto(expected);
+
+  if (current.includes("enilive") && target.includes("enilive")) return true;
+
+  return current === target;
 }
 
 function trovaRegioneDaProvincia(indirizzo) {
@@ -531,6 +606,45 @@ function normalizzaNomeRegione(nome) {
     .replace('Trentino-Alto Adige/S\u00fcdtirol', 'Trentino-Alto Adige')
     .replace("Valle d'Aosta/Vall\u00e9e d'Aoste", "Valle d'Aosta")
     .replace('Friuli-Venezia Giulia', 'Friuli Venezia Giulia');
+}
+
+function isPointInFeature(punto, feature) {
+  const geometry = feature?.geometry;
+  if (!geometry) return false;
+
+  const coordinates = geometry.type === 'Polygon'
+    ? [geometry.coordinates]
+    : geometry.type === 'MultiPolygon'
+      ? geometry.coordinates
+      : [];
+
+  return coordinates.some((polygon) => isPointInPolygon([punto.lng, punto.lat], polygon));
+}
+
+function isPointInPolygon(point, polygon) {
+  if (!Array.isArray(polygon) || polygon.length === 0) return false;
+
+  const [outerRing, ...holes] = polygon;
+  if (!isPointInRing(point, outerRing)) return false;
+
+  return !holes.some((hole) => isPointInRing(point, hole));
+}
+
+function isPointInRing([lng, lat], ring) {
+  if (!Array.isArray(ring) || ring.length < 4) return false;
+
+  let isInside = false;
+
+  for (let i = 0, j = ring.length - 1; i < ring.length; j = i++) {
+    const [lngI, latI] = ring[i];
+    const [lngJ, latJ] = ring[j];
+    const intersects = ((latI > lat) !== (latJ > lat))
+      && lng < ((lngJ - lngI) * (lat - latI)) / (latJ - latI) + lngI;
+
+    if (intersects) isInside = !isInside;
+  }
+
+  return isInside;
 }
 
 function escapeHtml(value) {
