@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" role="img" aria-label="Eataly">
+  <rect width="120" height="120" rx="18" fill="#166534"/>
+  <circle cx="60" cy="60" r="38" fill="#f5f0e8"/>
+  <path d="M41 78V42h39v11H55v7h21v10H55v8h25v11H41z" fill="#166534"/>
+</svg>

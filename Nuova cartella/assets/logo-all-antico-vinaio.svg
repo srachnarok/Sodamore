@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" role="img" aria-label="All'antico Vinaio">
+  <rect width="120" height="120" rx="18" fill="#b45309"/>
+  <path d="M27 62c4-23 20-36 33-36s29 13 33 36H27z" fill="#f8d99b"/>
+  <path d="M31 63h58v13c0 10-8 18-18 18H49c-10 0-18-8-18-18V63z" fill="#f5f0e8"/>
+  <path d="M43 48h34M38 61h44" stroke="#7c2d12" stroke-width="6" stroke-linecap="round"/>
+</svg>
